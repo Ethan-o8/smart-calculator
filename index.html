@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ko" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- SEO 및 메타태그 추가 -->
+    <meta name="description" content="편의점, 마트 행사(1+1, 2+1, %할인) 적용 시 실제 100단위 가격을 비교하여 최저가를 찾아주는 스마트 단위 가격 계산기. 다국어 지원.">
+    <meta name="keywords" content="단위가격계산기, 가성비계산기, 1+1, 2+1, 할인계산, 최저가비교, unit price calculator">
+    <meta property="og:title" content="스마트 가격 비교기 | 단위 가격 및 할인 최적화">
+    <meta property="og:description" content="1+1, 2+1 행사 중 어떤 제품이 진짜 더 저렴한지 실시간으로 비교해 보세요.">
+    <meta property="og:type" content="website">
+    <title>단위 가격 및 할인 최적화 계산기</title>
+    <!-- Tailwind CSS (CDN 접속 에러 방지를 위해 제거하지 않고 유지합니다) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        
+        .fade-out {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 selection:bg-emerald-200">
+
+    <!-- 언어 선택 모달 (기존 동일) -->
+    <div id="lang-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-100/95 dark:bg-gray-900/95 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-2xl max-w-sm w-full mx-4 text-center max-h-[90vh] overflow-y-auto">
+            <div class="mb-5 flex justify-center">
+                <div class="p-3 bg-emerald-100 dark:bg-emerald-900/50 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-xl font-bold mb-1 text-gray-900 dark:text-white">언어 선택 / Language</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Choose your preferred language</p>
+            
+            <div class="space-y-2.5">
+                <button onclick="selectLanguage('ko')" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 px-4 rounded-xl transition-colors shadow-sm flex items-center justify-center gap-2">
+                    <span class="text-lg">🇰🇷</span> 한국어
+                </button>
+                <button onclick="selectLanguage('en')" class="w-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-medium py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2">
+                    <span class="text-lg">🇺🇸</span> English
+                </button>
+                <button onclick="selectLanguage('zh')" class="w-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-medium py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2">
+                    <span class="text-lg">🇨🇳</span> 中文 (简体)
+                </button>
+                <button onclick="selectLanguage('ja')" class="w-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-medium py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2">
+                    <span class="text-lg">🇯🇵</span> 日本語
+                </button>
+                <button onclick="selectLanguage('fr')" class="w-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-medium py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2">
+                    <span class="text-lg">🇫🇷</span> Français
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 메인 앱 영역 -->
+    <div id="main-app" class="hidden flex-col flex-grow">
+        <header class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-sm sticky top-0 z-20 transition-colors">
+            <div class="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
+                <h1 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2" data-i18n="title">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    스마트 가격 비교기
+                </h1>
+                
+                <button id="theme-toggle" class="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/50">
+                    <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4.22 3.22a1 1 0 011.415 0l.708.708a1 1 0 01-1.414 1.414l-.708-.708a1 1 0 010-1.414zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zm-3.22 4.22a1 1 0 010 1.415l-.708.708a1 1 0 01-1.414-1.414l.708-.708a1 1 0 011.414 0zM10 18a1 1 0 01-1-1v-1a1 1 0 112 0v1a1 1 0 01-1 1zm-4.22-3.22a1 1 0 01-1.415 0l-.708-.708a1 1 0 011.414-1.414l.708.708a1 1 0 010 1.414zM2 10a1 1 0 011-1h1a1 1 0 110 2H3a1 1 0 01-1-1zm3.22-4.22a1 1 0 010-1.415l.708-.708a1 1 0 011.414 1.414l-.708.708a1 1 0 01-1.414 0zM10 5a5 5 0 100 10 5 5 0 000-10z" clip-rule="evenodd"></path>
+                    </svg>
+                    <svg id="theme-toggle-dark-icon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <main class="flex-grow w-full max-w-3xl mx-auto p-4 pb-8 space-y-8">
+            <!-- 기존 계산기 UI 영역 (최대 너비 제한 유지) -->
+            <div class="max-w-md mx-auto space-y-5">
+                <!-- Product A -->
+                <section id="card-a" class="relative bg-white dark:bg-gray-800 rounded-3xl shadow-sm border-2 border-transparent p-5 transition-all duration-300 ease-in-out">
+                    <div id="badge-a" class="absolute -top-3.5 right-4 bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg opacity-0 transform scale-90 transition-all duration-300 pointer-events-none flex items-center gap-1 z-10" data-i18n="cheapest">
+                        🏆 최저가
+                    </div>
+                    
+                    <h2 class="text-base font-bold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
+                        <span class="flex items-center justify-center w-7 h-7 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-lg text-sm">A</span>
+                        <span data-i18n="productA">상품 A</span>
+                    </h2>
+
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label for="price-a" class="block text-[11px] font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400 mb-1.5" data-i18n="priceLabel">가격</label>
+                                <input type="number" id="price-a" inputmode="numeric" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-xl focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 block p-3 transition-colors outline-none font-medium">
+                            </div>
+                            <div>
+                                <label for="vol-a" class="block text-[11px] font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400 mb-1.5" data-i18n="capLabel">용량/무게</label>
+                                <input type="number" id="vol-a" inputmode="decimal" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-xl focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 block p-3 transition-colors outline-none font-medium">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="disc-a" class="block text-[11px] font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400 mb-1.5" data-i18n="discLabel">할인 유형</label>
+                            <select id="disc-a" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-xl focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 block p-3 transition-colors outline-none font-medium cursor-pointer">
+                                <option value="0" data-i18n="optNone">할인 없음</option>
+                                <option value="1+1" data-i18n="opt1p1">1 + 1 행사</option>
+                                <option value="2+1" data-i18n="opt2p1">2 + 1 행사</option>
+                                <option value="custom" data-i18n="optCustom">직접 % 입력</option>
+                            </select>
+                        </div>
+                        
+                        <div id="custom-wrap-a" class="hidden animate-fade-in">
+                            <label for="custom-perc-a" class="block text-[11px] font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400 mb-1.5" data-i18n="customInputLabel">할인율 (%)</label>
+                            <div class="relative">
+                                <input type="number" id="custom-perc-a" inputmode="decimal" class="w-full bg-emerald-50/50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 text-gray-900 dark:text-white text-sm rounded-xl focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 block p-3 transition-colors outline-none font-medium pr-8">
+                                <span class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-sm font-bold text-emerald-600 dark:text-emerald-500">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700/80 flex justify-between items-end">
+                        <span class="text-xs text-gray-500 dark:text-gray-400 font-medium" data-i18n="unitPriceText">100단위 당 가격</span>
+                        <div class="text-right flex items-baseline gap-0.5">
+                            <span id="result-a" class="text-3xl font-bold text-gray-900 dark:text-white transition-colors tracking-tight">-</span>
+                            <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 currency-unit" data-i18n="currency">원</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Product B -->
+                <section id="card-b" class="relative bg-white dark:bg-gray-800 rounded-3xl shadow-sm border-2 border-transparent p-5 transition-all duration-300 ease-in-out">
+                    <div id="badge-b" class="absolute -top-3.5 right-4 bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg opacity-0 transform scale-90 transition-all duration-300 pointer-events-none flex items-center gap-1 z-10" data-i18n="cheapest">
+                        🏆 최저가
+                    </div>
+                    
+                    <h2 class="text-base font-bold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
+                        <span class="flex items-center justify-center w-7 h-7 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg text-sm">B</span>
+                        <span data-i18n="productB">상품 B</span>
+                    </h2>
+
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label for="price-b" class="block text-[11px] font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400 mb-1.5" data-i18n="priceLabel">가격</label>
+                                <input type="number" id="price-b" inputmode="numeric" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 block p-3 transition-colors outline-none font-medium">
+                            </div>
+                            <div>
+                                <label for="vol-b" class="block text-[11px] font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400 mb-1.5" data-i18n="capLabel">용량/무게</label>
+                                <input type="number" id="vol-b" inputmode="decimal" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 block p-3 transition-colors outline-none font-medium">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="disc-b" class="block text-[11px] font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400 mb-1.5" data-i18n="discLabel">할인 유형</label>
+                            <select id="disc-b" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 block p-3 transition-colors outline-none font-medium cursor-pointer">
+                                <option value="0" data-i18n="optNone">할인 없음</option>
+                                <option value="1+1" data-i18n="opt1p1">1 + 1 행사</option>
+                                <option value="2+1" data-i18n="opt2p1">2 + 1 행사</option>
+                                <option value="custom" data-i18n="optCustom">직접 % 입력</option>
+                            </select>
+                        </div>
+                        
+                        <div id="custom-wrap-b" class="hidden animate-fade-in">
+                            <label for="custom-perc-b" class="block text-[11px] font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400 mb-1.5" data-i18n="customInputLabel">할인율 (%)</label>
+                            <div class="relative">
+                                <input type="number" id="custom-perc-b" inputmode="decimal" class="w-full bg-blue-50/50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 text-gray-900 dark:text-white text-sm rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 block p-3 transition-colors outline-none font-medium pr-8">
+                                <span class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-sm font-bold text-blue-600 dark:text-blue-500">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700/80 flex justify-between items-end">
+                        <span class="text-xs text-gray-500 dark:text-gray-400 font-medium" data-i18n="unitPriceText">100단위 당 가격</span>
+                        <div class="text-right flex items-baseline gap-0.5">
+                            <span id="result-b" class="text-3xl font-bold text-gray-900 dark:text-white transition-colors tracking-tight">-</span>
+                            <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 currency-unit" data-i18n="currency">원</span>
+                        </div>
+                    </div>
+                </section>
+                
+                <p class="text-xs text-center text-gray-400/80 dark:text-gray-500 leading-relaxed px-4 pb-4" data-i18n="info">
+                    입력 시 자동으로 계산되며, 1+1/2+1 행사 시 최종 수령 용량을 기준으로 계산됩니다.
+                </p>
+            </div>
+
+            <!-- SEO 및 애드센스 심사를 위한 콘텐츠 섹션 -->
+            <div class="grid md:grid-cols-2 gap-6 pt-8 border-t border-gray-200 dark:border-gray-800">
+                
+                <!-- 사이트 소개 (About) -->
+                <section class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3" data-i18n="aboutTitle">사이트 소개</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-4" data-i18n="aboutDesc1">
+                        '스마트 가격 비교기'는 마트나 편의점에서 쇼핑할 때, 용량이 다른 제품이나 할인 행사가 적용된 제품 중 어떤 것이 더 가성비가 좋은지 쉽게 비교할 수 있도록 도와주는 무료 도구입니다.
+                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed" data-i18n="aboutDesc2">
+                        여행객이나 다국적 사용자를 위해 한국어, 영어, 중국어, 일본어, 프랑스어를 지원하며 별도의 앱 설치 없이 웹 브라우저에서 즉시 사용 가능합니다.
+                    </p>
+                </section>
+
+                <!-- 기능 소개 (Features) -->
+                <section class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3" data-i18n="featTitle">주요 기능</h3>
+                    <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                        <li class="flex items-start gap-2">
+                            <span class="text-emerald-500 mt-0.5">✓</span>
+                            <span data-i18n="feat1"><strong>단위 가격 비교:</strong> 용량과 가격이 달라도 100단위당 가격으로 정확히 환산하여 비교합니다.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-emerald-500 mt-0.5">✓</span>
+                            <span data-i18n="feat2"><strong>다중 할인 적용:</strong> 1+1, 2+1, 퍼센트(%) 할인을 적용한 실구매가격을 즉시 계산합니다.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-emerald-500 mt-0.5">✓</span>
+                            <span data-i18n="feat3"><strong>최저가 알림:</strong> 계산된 결과를 바탕으로 가장 저렴한 제품을 직관적으로 강조 표시합니다.</span>
+                        </li>
+                    </ul>
+                </section>
+                
+                <!-- 개인정보처리방침 (Privacy Policy) -->
+                <section class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm md:col-span-2">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3" data-i18n="privacyTitle">개인정보처리방침 및 안내</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-2" data-i18n="privacyDesc1">
+                        본 서비스는 사용자의 <strong>개인정보를 일절 수집, 저장, 또는 서버로 전송하지 않습니다.</strong> 
+                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed" data-i18n="privacyDesc2">
+                        입력된 가격 및 용량 데이터는 전적으로 사용자의 기기(브라우저) 내에서만 처리되며, 페이지를 닫거나 새로고침하면 모든 데이터가 사라지는 안전한 정적(Static) 웹 서비스입니다. 안심하고 사용하세요.
+                    </p>
+                </section>
+            </div>
+        </main>
+
+        <footer class="mt-auto bg-white/50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-800 transition-colors">
+            <div class="max-w-3xl mx-auto p-5 flex flex-col items-center">
+                <!-- Google AdSense Banner Placeholder -->
+                <div class="w-full max-w-md h-[90px] bg-gray-100 dark:bg-gray-700/50 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-400 text-xs font-medium mb-4 tracking-wide" data-i18n="adsense">
+                    Google AdSense Banner Area
+                </div>
+                <div class="flex gap-4 mb-2">
+                    <a href="#" class="text-xs text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white transition-colors" data-i18n="linkTerms">이용약관</a>
+                    <a href="#" class="text-xs text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white transition-colors" data-i18n="linkPrivacy">개인정보처리방침</a>
+                    <a href="#" class="text-xs text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white transition-colors" data-i18n="linkContact">문의하기</a>
+                </div>
+                <p class="text-[10px] uppercase tracking-wider text-gray-400 dark:text-gray-500" data-i18n="footer">© 2026 Smart Calculator. Built with Vibe Coding.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const translations = {
+            ko: {
+                title: "스마트 가격 비교기",
+                productA: "상품 A",
+                productB: "상품 B",
+                priceLabel: "가격 (원)",
+                capLabel: "용량/무게",
+                discLabel: "할인 유형",
+                optNone: "할인 없음",
+                opt1p1: "1 + 1 행사",
+                opt2p1: "2 + 1 행사",
+                optCustom: "직접 % 입력",
+                customInputLabel: "할인율 (%)",
+                unitPriceText: "100단위 당 가격",
+                currency: "원",
+                cheapest: "🏆 최저가",
+                info: "입력 시 자동으로 계산되며, 1+1/2+1 행사 시 최종 수령 용량을 기준으로 계산됩니다.",
+                adsense: "Google AdSense 광고 영역",
+                footer: "© 2026 스마트 가격 비교기. Built with Vibe Coding.",
+                placeholderPrice: "예: 3000",
+                placeholderVol: "예: 500",
+                placeholderCustom: "예: 15",
+                aboutTitle: "사이트 소개",
+                aboutDesc1: "'스마트 가격 비교기'는 마트나 편의점에서 쇼핑할 때, 용량이 다른 제품이나 할인 행사가 적용된 제품 중 어떤 것이 더 가성비가 좋은지 쉽게 비교할 수 있도록 도와주는 무료 도구입니다.",
+                aboutDesc2: "여행객이나 다국적 사용자를 위해 한국어, 영어, 중국어, 일본어, 프랑스어를 지원하며 별도의 앱 설치 없이 웹 브라우저에서 즉시 사용 가능합니다.",
+                featTitle: "주요 기능",
+                feat1: "<strong>단위 가격 비교:</strong> 용량과 가격이 달라도 100단위당 가격으로 정확히 환산하여 비교합니다.",
+                feat2: "<strong>다중 할인 적용:</strong> 1+1, 2+1, 퍼센트(%) 할인을 적용한 실구매가격을 즉시 계산합니다.",
+                feat3: "<strong>최저가 알림:</strong> 계산된 결과를 바탕으로 가장 저렴한 제품을 직관적으로 강조 표시합니다.",
+                privacyTitle: "개인정보처리방침 및 안내",
+                privacyDesc1: "본 서비스는 사용자의 <strong>개인정보를 일절 수집, 저장, 또는 서버로 전송하지 않습니다.</strong>",
+                privacyDesc2: "입력된 가격 및 용량 데이터는 전적으로 사용자의 기기(브라우저) 내에서만 처리되며, 페이지를 닫거나 새로고침하면 모든 데이터가 사라지는 안전한 정적(Static) 웹 서비스입니다. 안심하고 사용하세요.",
+                linkTerms: "이용약관",
+                linkPrivacy: "개인정보처리방침",
+                linkContact: "문의하기"
+            },
+            en: {
+                title: "Unit Price Calculator",
+                productA: "Product A",
+                productB: "Product B",
+                priceLabel: "Price",
+                capLabel: "Capacity / Wgt",
+                discLabel: "Discount",
+                optNone: "None",
+                opt1p1: "Buy 1 Get 1 (1+1)",
+                opt2p1: "Buy 2 Get 1 (2+1)",
+                optCustom: "Custom % Off",
+                customInputLabel: "Discount (%)",
+                unitPriceText: "Price per 100 units",
+                currency: "",
+                cheapest: "🏆 Best Price",
+                info: "Auto-calculated. For 1+1 or 2+1, it uses total received capacity.",
+                adsense: "Google AdSense Banner Area",
+                footer: "© 2026 Smart Calculator. Built with Vibe Coding.",
+                placeholderPrice: "e.g. 10.99",
+                placeholderVol: "e.g. 500",
+                placeholderCustom: "e.g. 15",
+                aboutTitle: "About",
+                aboutDesc1: "'Unit Price Calculator' is a free tool that helps you easily compare which product is a better deal when shopping for items with different capacities or active discounts.",
+                aboutDesc2: "It supports multiple languages for global users and works instantly in your web browser without requiring any app installation.",
+                featTitle: "Key Features",
+                feat1: "<strong>Unit Price Comparison:</strong> Accurately converts to a per-100-unit price for fair comparison.",
+                feat2: "<strong>Multiple Discounts:</strong> Instantly calculates real prices applying 1+1, 2+1, or % discounts.",
+                feat3: "<strong>Best Price Highlight:</strong> Intuitively highlights the cheapest option based on the result.",
+                privacyTitle: "Privacy Policy",
+                privacyDesc1: "This service <strong>does not collect, store, or transmit any of your personal information</strong> to a server.",
+                privacyDesc2: "All price and capacity data is processed entirely on your device (browser). It is a safe, static web service where data disappears when you close or refresh the page. Use it with confidence.",
+                linkTerms: "Terms",
+                linkPrivacy: "Privacy",
+                linkContact: "Contact"
+            },
+            zh: {
+                title: "智能单价计算器",
+                productA: "商品 A",
+                productB: "商品 B",
+                priceLabel: "价格",
+                capLabel: "容量 / 重量",
+                discLabel: "折扣类型",
+                optNone: "无折扣",
+                opt1p1: "买一送一 (1+1)",
+                opt2p1: "买二送一 (2+1)",
+                optCustom: "自定义折扣 (%)",
+                customInputLabel: "折扣率 (%)",
+                unitPriceText: "每100单位价格",
+                currency: "",
+                cheapest: "🏆 最低价",
+                info: "输入时自动计算。对于1+1或2+1，按最终获得的实际容量计算。",
+                adsense: "Google AdSense 横幅区域",
+                footer: "© 2026 智能计算器。保留所有权利。",
+                placeholderPrice: "例: 30",
+                placeholderVol: "例: 500",
+                placeholderCustom: "例: 15",
+                aboutTitle: "关于",
+                aboutDesc1: "“智能单价计算器”是一款免费工具，可帮助您在购买不同容量或有折扣的商品时，轻松比较哪个更划算。",
+                aboutDesc2: "支持多种语言，无需安装应用程序即可在网络浏览器中即时使用。",
+                featTitle: "主要功能",
+                feat1: "<strong>单价比较：</strong> 准确换算为每 100 单位的价格，以便公平比较。",
+                feat2: "<strong>多重折扣：</strong> 立即计算应用 1+1、2+1 或 % 折扣的实际价格。",
+                feat3: "<strong>最低价提示：</strong> 直观地突出显示最便宜的选项。",
+                privacyTitle: "隐私政策",
+                privacyDesc1: "本服务<strong>不收集、不存储、不向服务器传输您的任何个人信息。</strong>",
+                privacyDesc2: "所有数据均在您的设备（浏览器）上处理，关闭页面即消失，绝对安全。",
+                linkTerms: "条款",
+                linkPrivacy: "隐私",
+                linkContact: "联系我们"
+            },
+            ja: {
+                title: "スマート単価計算機",
+                productA: "商品 A",
+                productB: "商品 B",
+                priceLabel: "価格",
+                capLabel: "容量 / 重量",
+                discLabel: "割引タイプ",
+                optNone: "割引なし",
+                opt1p1: "1+1 (1つ買うと1つ無料)",
+                opt2p1: "2+1 (2つ買うと1つ無料)",
+                optCustom: "カスタム割引 (%)",
+                customInputLabel: "割引率 (%)",
+                unitPriceText: "100単位あたりの価格",
+                currency: "",
+                cheapest: "🏆 最安値",
+                info: "入力時に自動計算されます。1+1または2+1の場合、最終的に受け取る容量で計算されます。",
+                adsense: "Google AdSense バナーエリア",
+                footer: "© 2026 スマート計算機. All rights reserved.",
+                placeholderPrice: "例: 500",
+                placeholderVol: "例: 1000",
+                placeholderCustom: "例: 15",
+                aboutTitle: "サイトについて",
+                aboutDesc1: "「スマート単価計算機」は、容量が異なる商品や割引中の商品を買い物する際、どちらがお得かを簡単に比較できる無料ツールです。",
+                aboutDesc2: "多言語に対応しており、アプリをインストールすることなくウェブブラウザですぐに使用できます。",
+                featTitle: "主な機能",
+                feat1: "<strong>単価比較:</strong> 公平に比較できるよう、100単位あたりの価格に正確に換算します。",
+                feat2: "<strong>複数の割引:</strong> 1+1、2+1、または%割引を適用した実質価格を瞬時に計算します。",
+                feat3: "<strong>最安値ハイライト:</strong> 計算結果に基づき、一番安い商品を直感的に強調表示します。",
+                privacyTitle: "プライバシーポリシー",
+                privacyDesc1: "当サービスは、ユーザーの<strong>個人情報を一切収集、保存、またはサーバーへ送信しません。</strong>",
+                privacyDesc2: "入力されたデータはすべてユーザーの端末（ブラウザ）内でのみ処理され、ページを閉じると消去される安全なサービスです。",
+                linkTerms: "利用規約",
+                linkPrivacy: "プライバシー",
+                linkContact: "お問い合わせ"
+            },
+            fr: {
+                title: "Calculateur de Prix Unitaire",
+                productA: "Produit A",
+                productB: "Produit B",
+                priceLabel: "Prix",
+                capLabel: "Capacité / Poids",
+                discLabel: "Type de Remise",
+                optNone: "Aucune",
+                opt1p1: "1 acheté = 1 offert (1+1)",
+                opt2p1: "2 achetés = 1 offert (2+1)",
+                optCustom: "Remise perso (%)",
+                customInputLabel: "Taux de remise (%)",
+                unitPriceText: "Prix pour 100 unités",
+                currency: "",
+                cheapest: "🏆 Meilleur Prix",
+                info: "Calcul automatique. Pour 1+1 ou 2+1, le calcul utilise la capacité totale reçue.",
+                adsense: "Zone de bannière Google AdSense",
+                footer: "© 2026 Calculateur. Tous droits réservés.",
+                placeholderPrice: "ex: 5.99",
+                placeholderVol: "ex: 500",
+                placeholderCustom: "ex: 15",
+                aboutTitle: "À propos",
+                aboutDesc1: "Le 'Calculateur de Prix Unitaire' est un outil gratuit qui vous aide à comparer facilement quel produit est le plus avantageux.",
+                aboutDesc2: "Il prend en charge plusieurs langues et fonctionne instantanément dans votre navigateur.",
+                featTitle: "Fonctionnalités",
+                feat1: "<strong>Comparaison:</strong> Convertit au prix pour 100 unités pour une comparaison équitable.",
+                feat2: "<strong>Remises:</strong> Calcule instantanément avec les remises 1+1, 2+1 ou %.",
+                feat3: "<strong>Meilleur Prix:</strong> Met en évidence intuitivement l'option la moins chère.",
+                privacyTitle: "Politique de confidentialité",
+                privacyDesc1: "Ce service <strong>ne collecte, ne stocke ni ne transmet aucune de vos données personnelles.</strong>",
+                privacyDesc2: "Toutes les données sont traitées sur votre appareil (navigateur). C'est un service sûr et sans serveur.",
+                linkTerms: "Conditions",
+                linkPrivacy: "Confidentialité",
+                linkContact: "Contact"
+            }
+        };
+
+        let currentLang = 'ko';
+
+        function selectLanguage(lang) {
+            currentLang = lang;
+            applyTranslations();
+            
+            const langScreen = document.getElementById('lang-screen');
+            const mainApp = document.getElementById('main-app');
+            
+            langScreen.classList.add('fade-out');
+            setTimeout(() => {
+                langScreen.style.display = 'none';
+                mainApp.classList.remove('hidden');
+                mainApp.classList.add('flex', 'animate-fade-in');
+            }, 400);
+        }
+
+        function applyTranslations() {
+            const texts = translations[currentLang];
+            
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (texts[key] !== undefined) {
+                    el.innerHTML = texts[key];
+                }
+            });
+
+            ['a', 'b'].forEach(id => {
+                document.getElementById(`price-${id}`).placeholder = texts.placeholderPrice;
+                document.getElementById(`vol-${id}`).placeholder = texts.placeholderVol;
+                document.getElementById(`custom-perc-${id}`).placeholder = texts.placeholderCustom;
+            });
+            
+            calculateAndUpdate();
+        }
+
+        // Theme Toggle Logic
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+        const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            themeToggleLightIcon.classList.remove('hidden');
+        } else {
+            document.documentElement.classList.remove('dark');
+            themeToggleDarkIcon.classList.remove('hidden');
+        }
+
+        themeToggleBtn.addEventListener('click', function() {
+            themeToggleDarkIcon.classList.toggle('hidden');
+            themeToggleLightIcon.classList.toggle('hidden');
+
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('color-theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('color-theme', 'dark');
+            }
+        });
+
+        // Calculator Logic
+        const inputs = {
+            a: {
+                price: document.getElementById('price-a'),
+                vol: document.getElementById('vol-a'),
+                disc: document.getElementById('disc-a'),
+                customWrap: document.getElementById('custom-wrap-a'),
+                customPerc: document.getElementById('custom-perc-a'),
+                result: document.getElementById('result-a'),
+                card: document.getElementById('card-a'),
+                badge: document.getElementById('badge-a')
+            },
+            b: {
+                price: document.getElementById('price-b'),
+                vol: document.getElementById('vol-b'),
+                disc: document.getElementById('disc-b'),
+                customWrap: document.getElementById('custom-wrap-b'),
+                customPerc: document.getElementById('custom-perc-b'),
+                result: document.getElementById('result-b'),
+                card: document.getElementById('card-b'),
+                badge: document.getElementById('badge-b')
+            }
+        };
+
+        ['a', 'b'].forEach(item => {
+            const grp = inputs[item];
+            grp.price.addEventListener('input', calculateAndUpdate);
+            grp.vol.addEventListener('input', calculateAndUpdate);
+            grp.customPerc.addEventListener('input', calculateAndUpdate);
+            
+            grp.disc.addEventListener('change', (e) => {
+                if (e.target.value === 'custom') {
+                    grp.customWrap.classList.remove('hidden');
+                } else {
+                    grp.customWrap.classList.add('hidden');
+                    grp.customPerc.value = ''; 
+                }
+                calculateAndUpdate();
+            });
+        });
+
+        function calculateUnitPrice(priceStr, volStr, discVal, customPercStr) {
+            const price = parseFloat(priceStr);
+            const vol = parseFloat(volStr);
+
+            if (isNaN(price) || isNaN(vol) || price <= 0 || vol <= 0) return null;
+
+            let paidPrice = price;
+            let totalVol = vol;
+
+            if (discVal === '1+1') {
+                totalVol = vol * 2;
+            } else if (discVal === '2+1') {
+                paidPrice = price * 2;
+                totalVol = vol * 3;
+            } else if (discVal === 'custom') {
+                const perc = parseFloat(customPercStr);
+                if (!isNaN(perc) && perc > 0 && perc <= 100) {
+                    paidPrice = price * (1 - (perc / 100));
+                }
+            }
+
+            return (paidPrice / totalVol) * 100;
+        }
+
+        function resetHighlight(item) {
+            const { card, badge, result } = inputs[item];
+            card.classList.remove('border-emerald-500', 'bg-emerald-50/50', 'dark:bg-emerald-900/20', 'dark:border-emerald-500');
+            card.classList.add('border-transparent');
+            badge.classList.remove('opacity-100', 'scale-100');
+            badge.classList.add('opacity-0', 'scale-90');
+            result.classList.remove('text-emerald-600', 'dark:text-emerald-400');
+            result.classList.add('text-gray-900', 'dark:text-white');
+        }
+
+        function highlightCheapest(item) {
+            const { card, badge, result } = inputs[item];
+            card.classList.remove('border-transparent');
+            card.classList.add('border-emerald-500', 'bg-emerald-50/50', 'dark:bg-emerald-900/20', 'dark:border-emerald-500');
+            badge.classList.remove('opacity-0', 'scale-90');
+            badge.classList.add('opacity-100', 'scale-100');
+            result.classList.remove('text-gray-900', 'dark:text-white');
+            result.classList.add('text-emerald-600', 'dark:text-emerald-400');
+        }
+
+        function calculateAndUpdate() {
+            const unitPriceA = calculateUnitPrice(inputs.a.price.value, inputs.a.vol.value, inputs.a.disc.value, inputs.a.customPerc.value);
+            const unitPriceB = calculateUnitPrice(inputs.b.price.value, inputs.b.vol.value, inputs.b.disc.value, inputs.b.customPerc.value);
+
+            const formatNumber = (num) => {
+                if (num === null) return '-';
+                return num < 10 
+                    ? num.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 2}) 
+                    : num.toLocaleString(undefined, {maximumFractionDigits: 1});
+            }
+
+            inputs.a.result.textContent = formatNumber(unitPriceA);
+            inputs.b.result.textContent = formatNumber(unitPriceB);
+
+            resetHighlight('a');
+            resetHighlight('b');
+
+            if (unitPriceA !== null && unitPriceB !== null) {
+                if (unitPriceA < unitPriceB - 0.0001) {
+                    highlightCheapest('a');
+                } else if (unitPriceB < unitPriceA - 0.0001) {
+                    highlightCheapest('b');
+                } else {
+                    highlightCheapest('a');
+                    highlightCheapest('b');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
